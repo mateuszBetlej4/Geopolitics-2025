@@ -17,22 +17,24 @@ pip install tabulate requests
 
 ## Available Scripts
 
+These scripts can be run from any directory - they use absolute paths to find the necessary files.
+
 ### 1. Deploy Script (`deploy.py`)
 
 Deploys the game components (database, Redis, backend, frontend).
 
 ```bash
 # Deploy all components
-python deploy.py deploy all
+python scripts/deploy.py deploy all
 
 # Deploy specific components
-python deploy.py deploy database
-python deploy.py deploy redis
-python deploy.py deploy backend
-python deploy.py deploy frontend
+python scripts/deploy.py deploy database
+python scripts/deploy.py deploy redis
+python scripts/deploy.py deploy backend
+python scripts/deploy.py deploy frontend
 
 # Stop all containers
-python deploy.py stop
+python scripts/deploy.py stop
 ```
 
 ### 2. Status Script (`status.py`)
@@ -40,7 +42,7 @@ python deploy.py stop
 Checks the status of all game components.
 
 ```bash
-python status.py
+python scripts/status.py
 ```
 
 This will display:
@@ -57,11 +59,11 @@ Resets the game data to its initial state.
 
 ```bash
 # Reset all game data
-python reset.py all
+python scripts/reset.py all
 
 # Reset specific components
-python reset.py database
-python reset.py redis
+python scripts/reset.py database
+python scripts/reset.py redis
 ```
 
 ## Typical Workflow
@@ -69,24 +71,24 @@ python reset.py redis
 1. **First-time setup**:
 
    ```bash
-   python deploy.py deploy all
+   python scripts/deploy.py deploy all
    ```
 
 2. **Check status**:
 
    ```bash
-   python status.py
+   python scripts/status.py
    ```
 
 3. **Reset game data** (if needed):
 
    ```bash
-   python reset.py all
+   python scripts/reset.py all
    ```
 
 4. **Stop all containers** (when done):
    ```bash
-   python deploy.py stop
+   python scripts/deploy.py stop
    ```
 
 ## Accessing the Game
@@ -101,17 +103,17 @@ If you encounter issues:
 1. Check the status of all components:
 
    ```bash
-   python status.py
+   python scripts/status.py
    ```
 
 2. Try resetting the data:
 
    ```bash
-   python reset.py all
+   python scripts/reset.py all
    ```
 
 3. Restart all containers:
    ```bash
-   python deploy.py stop
-   python deploy.py deploy all
+   python scripts/deploy.py stop
+   python scripts/deploy.py deploy all
    ```

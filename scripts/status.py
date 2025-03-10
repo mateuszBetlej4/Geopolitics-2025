@@ -14,6 +14,10 @@ from tabulate import tabulate
 # Add parent directory to path so we can import from backend
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+# Get the project root directory
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+DOCKER_DIR = os.path.join(PROJECT_ROOT, 'docker')
+
 def run_command(command):
     """Run a shell command and return its output."""
     result = subprocess.run(command, shell=True, capture_output=True, text=True)
@@ -24,7 +28,7 @@ def check_docker_status():
     print("\n🐳 Checking Docker containers status...")
     
     # Get container status
-    success, stdout, stderr = run_command("cd docker && docker-compose ps")
+    success, stdout, stderr = run_command(f"cd {DOCKER_DIR} && docker-compose ps")
     
     if not success:
         print(f"Error: {stderr}")

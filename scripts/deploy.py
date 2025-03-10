@@ -13,6 +13,10 @@ import time
 # Add parent directory to path so we can import from backend
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+# Get the project root directory
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+DOCKER_DIR = os.path.join(PROJECT_ROOT, 'docker')
+
 def run_command(command, description=None):
     """Run a shell command and print its output."""
     if description:
@@ -34,7 +38,7 @@ def deploy_database():
     print("\n🗄️  Deploying PostgreSQL database...")
     
     # Start PostgreSQL container
-    if not run_command("cd docker && docker-compose up -d postgres", 
+    if not run_command(f"cd {DOCKER_DIR} && docker-compose up -d postgres", 
                      "Starting PostgreSQL container"):
         return False
     
@@ -43,7 +47,7 @@ def deploy_database():
     time.sleep(5)
     
     # Initialize database with all nations and alliances
-    if not run_command("python -m backend.initialize_all_nations", 
+    if not run_command(f"cd {PROJECT_ROOT} && python -m backend.initialize_all_nations", 
                      "Initializing database with nations and alliances"):
         return False
     
@@ -55,7 +59,7 @@ def deploy_redis():
     print("\n📊 Deploying Redis...")
     
     # Start Redis container
-    if not run_command("cd docker && docker-compose up -d redis", 
+    if not run_command(f"cd {DOCKER_DIR} && docker-compose up -d redis", 
                      "Starting Redis container"):
         return False
     
@@ -64,7 +68,7 @@ def deploy_redis():
     time.sleep(3)
     
     # Initialize Redis with game state
-    if not run_command("python -m backend.initialize_redis", 
+    if not run_command(f"cd {PROJECT_ROOT} && python -m backend.initialize_redis", 
                      "Initializing Redis with game state"):
         return False
     
@@ -76,7 +80,7 @@ def deploy_backend():
     print("\n🖥️  Deploying backend API server...")
     
     # Build and start backend container
-    if not run_command("cd docker && docker-compose up -d backend", 
+    if not run_command(f"cd {DOCKER_DIR} && docker-compose up -d backend", 
                      "Starting backend container"):
         return False
     
@@ -88,7 +92,7 @@ def deploy_frontend():
     print("\n🌐 Deploying frontend application...")
     
     # Build and start frontend container
-    if not run_command("cd docker && docker-compose up -d frontend", 
+    if not run_command(f"cd {DOCKER_DIR} && docker-compose up -d frontend", 
                      "Starting frontend container"):
         return False
     
@@ -124,7 +128,7 @@ def stop_all():
     """Stop all containers."""
     print("\n🛑 Stopping all containers...")
     
-    if not run_command("cd docker && docker-compose down", 
+    if not run_command(f"cd {DOCKER_DIR} && docker-compose down", 
                      "Stopping all containers"):
         return False
     

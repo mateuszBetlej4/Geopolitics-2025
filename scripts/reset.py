@@ -11,11 +11,17 @@ import argparse
 # Add parent directory to path so we can import from backend
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+# Get the project root directory
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+
 def reset_database():
     """Reset the PostgreSQL database to its initial state."""
     print("\n🗄️  Resetting PostgreSQL database...")
     
     try:
+        # Change to project root directory
+        os.chdir(PROJECT_ROOT)
+        
         # Import and run the database initialization script
         from backend.initialize_all_nations import initialize_all_nations
         
@@ -33,6 +39,9 @@ def reset_redis():
     print("\n📊 Resetting Redis...")
     
     try:
+        # Change to project root directory
+        os.chdir(PROJECT_ROOT)
+        
         # Import and run the Redis initialization script
         from backend.initialize_redis import initialize_redis
         
