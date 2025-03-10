@@ -117,3 +117,107 @@ If you encounter issues:
    python scripts/deploy.py stop
    python scripts/deploy.py deploy all
    ```
+
+# Geopolitics-2025 Test Scripts
+
+This directory contains scripts for testing the Geopolitics-2025 game.
+
+## Prerequisites
+
+- Python 3.8 or higher
+- Required Python packages: `requests`, `tabulate`, `psycopg2-binary`, `redis`
+
+You can install the required packages with:
+
+```bash
+pip install requests tabulate psycopg2-binary redis
+```
+
+## Available Scripts
+
+### 1. System Test Script (`test_system.py`)
+
+Tests all components of the system (Docker containers, backend API, frontend, database, Redis).
+
+```bash
+python scripts/test_system.py
+```
+
+This will display:
+
+- Docker container status
+- Backend API status and response
+- Frontend status
+- Database connection status
+- Redis connection status
+- Overall system status
+
+### 2. UI Test Script (`test_ui.py`)
+
+Opens a browser and navigates to the frontend.
+
+```bash
+# Open in default browser
+python scripts/test_ui.py
+
+# Open in specific browser
+python scripts/test_ui.py --browser chrome
+python scripts/test_ui.py --browser firefox
+python scripts/test_ui.py --browser edge
+python scripts/test_ui.py --browser safari
+```
+
+## Typical Testing Workflow
+
+1. **Check system status**:
+
+   ```bash
+   python scripts/test_system.py
+   ```
+
+2. **Test the UI**:
+
+   ```bash
+   python scripts/test_ui.py
+   ```
+
+3. **If issues are found**, check the logs:
+
+   ```bash
+   docker logs geopolitics_frontend
+   docker logs geopolitics_backend
+   docker logs geopolitics_postgres
+   docker logs geopolitics_redis
+   ```
+
+## Troubleshooting
+
+If you encounter issues:
+
+1. Make sure all containers are running:
+
+   ```bash
+   docker ps
+   ```
+
+2. Restart containers if needed:
+
+   ```bash
+   docker-compose -f docker/docker-compose.yml restart
+   ```
+
+3. Check for port conflicts:
+
+   ```bash
+   # Windows
+   netstat -ano | findstr :3000
+   netstat -ano | findstr :8000
+   netstat -ano | findstr :5433
+   netstat -ano | findstr :6379
+
+   # Linux/macOS
+   lsof -i :3000
+   lsof -i :8000
+   lsof -i :5433
+   lsof -i :6379
+   ```

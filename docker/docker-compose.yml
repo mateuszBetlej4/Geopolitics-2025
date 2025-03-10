@@ -46,7 +46,7 @@ services:
       dockerfile: docker/Dockerfile.frontend
     container_name: geopolitics_frontend
     ports:
-      - "3000:3000"
+      - "3000:80"
     volumes:
       - ../frontend:/app
     restart: unless-stopped
