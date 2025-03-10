@@ -7,6 +7,7 @@ _A real-time browser-based strategy game set in 2025, where players assume the r
 - [Introduction](#introduction)
 - [Tech Stack](#tech-stack)
 - [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
 - [Game Mechanics](#game-mechanics)
 - [Playable Nations & Leaders](#playable-nations--leaders)
 - [Military & Economic Power Rankings](#military--economic-power-rankings)
@@ -17,6 +18,7 @@ _A real-time browser-based strategy game set in 2025, where players assume the r
 - [Research & Military Development](#research--military-development)
 - [Nuclear War & Endgame Conditions](#nuclear-war--endgame-conditions)
 - [Reputation System](#reputation-system)
+- [Development & Deployment](#development--deployment)
 - [Final Thoughts](#final-thoughts)
 
 ---
@@ -47,7 +49,12 @@ Players can leverage **Elon Musk as an AI-driven strategic asset**, research adv
   - **Redis**: Caches AI computations and game events for efficiency.
 
 - **Game State Management:**
+
   - **WebSockets**: Ensures real-time updates and interactions.
+
+- **Deployment & Infrastructure:**
+  - **Docker & Docker Compose**: Containerization for consistent deployment.
+  - **Python Scripts**: Custom deployment, status checking, and reset tools.
 
 ---
 
@@ -72,6 +79,8 @@ geopolitics-2025/
 │   │   ├── models.py               # Database schemas for nations, leaders, and alliances
 │   │   ├── queries.py              # Database queries for game state management
 │   │   ├── db_config.py            # Database connection configuration
+│   │   ├── initialize_all_nations.py # Script to initialize database with nations
+│   │   ├── initialize_redis.py     # Script to initialize Redis with game state
 │   ├── utils/
 │   │   ├── __init__.py
 │   │   ├── ai_helpers.py           # AI decision-making utilities
@@ -119,9 +128,57 @@ geopolitics-2025/
 │   ├── docker-compose.yml          # Docker Compose configuration
 │   ├── Dockerfile.backend          # Backend Dockerfile
 │   ├── Dockerfile.frontend         # Frontend Dockerfile
+├── scripts/
+│   ├── deploy.py                   # Deployment script for all components
+│   ├── status.py                   # Status checking script
+│   ├── reset.py                    # Data reset script
+│   ├── README.md                   # Documentation for scripts
 ├── .gitignore
 ├── README.md
 ```
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Python 3.10+
+- Docker and Docker Compose
+- Git
+
+### Quick Start
+
+1. **Clone the repository**:
+
+   ```bash
+   git clone https://github.com/yourusername/geopolitics-2025.git
+   cd geopolitics-2025
+   ```
+
+2. **Install script dependencies**:
+
+   ```bash
+   pip install sqlalchemy psycopg2-binary redis requests tabulate
+   ```
+
+3. **Deploy all components**:
+
+   ```bash
+   python scripts/deploy.py deploy all
+   ```
+
+4. **Check the status**:
+
+   ```bash
+   python scripts/status.py
+   ```
+
+5. **Access the game**:
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:8000
+
+For more detailed setup instructions, see the [project_setup.md](project_setup.md) file.
 
 ---
 
@@ -163,18 +220,18 @@ geopolitics-2025/
 
 ## Playable Nations & Leaders
 
-| Country            | Leader (January 2025)                                              |
-| ------------------ | ------------------------------------------------------------------ |
-| **United States**  | Donald Trump (AI: Elon Musk as a strategic ally)                   |
-| **China**          | Li Qiang                                                           |
-| **Russia**         | Vladimir Putin                                                     |
-| **India**          | Narendra Modi                                                      |
-| **France**         | Emmanuel Macron                                                    |
-| **Germany**        | Friedrich Merz                                                     |
-| **United Kingdom** | Keir Starmer                                                       |
-| **Poland**         | Rafał Trzaskowski, Nawrocki, or Sławomir Mentzen (player's choice) |
-| **Ukraine**        | Volodymyr Zelenskyy                                                |
-| **North Korea**    | Kim Jong-un (Unpredictable AI behavior)                            |
+| Country            | Leader (January 2025)                            |
+| ------------------ | ------------------------------------------------ |
+| **United States**  | Donald Trump (AI: Elon Musk as a strategic ally) |
+| **China**          | Li Qiang                                         |
+| **Russia**         | Vladimir Putin                                   |
+| **India**          | Narendra Modi                                    |
+| **France**         | Emmanuel Macron                                  |
+| **Germany**        | Friedrich Merz                                   |
+| **United Kingdom** | Keir Starmer                                     |
+| **Poland**         | Sławomir Mentzen                                 |
+| **Ukraine**        | Volodymyr Zelenskyy                              |
+| **North Korea**    | Kim Jong-un (Unpredictable AI behavior)          |
 
 ---
 
@@ -284,6 +341,52 @@ geopolitics-2025/
 - **Global Reputation Score:** Determines trust levels among nations.
 - **Breaking alliances, war declarations, and nuclear strikes impact reputation.**
 - **Media and public perception influence diplomatic relations.**
+
+---
+
+## Development & Deployment
+
+### Deployment Scripts
+
+The project includes several scripts to simplify deployment and management:
+
+1. **Deploy Script** (`scripts/deploy.py`):
+
+   ```bash
+   # Deploy all components
+   python scripts/deploy.py deploy all
+
+   # Deploy specific components
+   python scripts/deploy.py deploy database
+   python scripts/deploy.py deploy redis
+
+   # Stop all containers
+   python scripts/deploy.py stop
+   ```
+
+2. **Status Script** (`scripts/status.py`):
+
+   ```bash
+   python scripts/status.py
+   ```
+
+3. **Reset Script** (`scripts/reset.py`):
+
+   ```bash
+   # Reset all game data
+   python scripts/reset.py all
+
+   # Reset specific components
+   python scripts/reset.py database
+   python scripts/reset.py redis
+   ```
+
+### Database Configuration
+
+- **PostgreSQL**: Runs on port 5433, with username/password: admin/admin
+- **Redis**: Runs on port 6379
+
+For more details on development and deployment, see the [scripts/README.md](scripts/README.md) file.
 
 ---
 

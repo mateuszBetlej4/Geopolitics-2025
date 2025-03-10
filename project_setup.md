@@ -21,6 +21,8 @@ geopolitics-2025/
 │   │   ├── models.py               # Database schemas for nations, leaders, and alliances
 │   │   ├── queries.py              # Database queries for game state management
 │   │   ├── db_config.py            # Database connection configuration
+│   │   ├── initialize_all_nations.py # Script to initialize database with nations
+│   │   ├── initialize_redis.py     # Script to initialize Redis with game state
 │   ├── utils/
 │   │   ├── __init__.py
 │   │   ├── ai_helpers.py           # AI decision-making utilities
@@ -68,6 +70,11 @@ geopolitics-2025/
 │   ├── docker-compose.yml          # Docker Compose configuration
 │   ├── Dockerfile.backend          # Backend Dockerfile
 │   ├── Dockerfile.frontend         # Frontend Dockerfile
+├── scripts/
+│   ├── deploy.py                   # Deployment script for all components
+│   ├── status.py                   # Status checking script
+│   ├── reset.py                    # Data reset script
+│   ├── README.md                   # Documentation for scripts
 ├── .gitignore
 ├── README.md
 ```
@@ -76,11 +83,11 @@ geopolitics-2025/
 
 ### Backend (Python)
 
-Create a `backend/requirements.txt` file with the following dependencies:
+The backend uses the following dependencies (defined in `backend/requirements.txt`):
 
 ```
 fastapi==0.104.1
-uvicorn==0.23.2
+uvicorn==0.24.0
 sqlalchemy==2.0.23
 pydantic==2.4.2
 psycopg2-binary==2.9.9
@@ -95,7 +102,7 @@ pandas==2.1.2
 
 ### Frontend (Vue.js)
 
-Create a `frontend/package.json` file with the following dependencies:
+The frontend uses the following dependencies (defined in `frontend/package.json`):
 
 ```json
 {
@@ -134,14 +141,125 @@ Create a `frontend/package.json` file with the following dependencies:
 ### Prerequisites
 
 - Python 3.10+
-- Node.js 18+
-- PostgreSQL 14+
-- Redis (optional, for caching)
-- Docker and Docker Compose (optional, for containerization)
+- Docker and Docker Compose
+- Git
 
-### Backend Setup
+### Docker-Based Setup (Recommended)
 
-1. Create a virtual environment:
+We use Docker to containerize all components of the application, making it easy to deploy and run consistently across different environments.
+
+1. **Clone the repository**:
+
+   ```bash
+   git clone https://github.com/yourusername/geopolitics-2025.git
+   cd geopolitics-2025
+   ```
+
+2. **Install script dependencies**:
+
+   ```bash
+   pip install sqlalchemy psycopg2-binary redis requests tabulate
+   ```
+
+3. **Deploy all components using the deployment script**:
+
+   ```bash
+   python scripts/deploy.py deploy all
+   ```
+
+   This script will:
+
+   - Start PostgreSQL container
+   - Initialize the database with nations and alliances
+   - Start Redis container
+   - Initialize Redis with game state
+   - Start the backend API server
+   - Start the frontend application
+
+4. **Check the status of all components**:
+
+   ```bash
+   python scripts/status.py
+   ```
+
+5. **Access the application**:
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:8000
+
+### Database Configuration
+
+The PostgreSQL database is configured with the following default settings:
+
+- **Host**: localhost (or postgres inside Docker network)
+- **Port**: 5433 (mapped from container port 5432)
+- **Database**: geopolitics_2025
+- **Username**: admin
+- **Password**: admin
+
+The connection string is:
+
+```
+postgresql://admin:admin@localhost:5433/geopolitics_2025
+```
+
+For applications running inside Docker containers, the connection string is:
+
+```
+postgresql://admin:admin@postgres:5432/geopolitics_2025
+```
+
+### Redis Configuration
+
+Redis is configured with the following default settings:
+
+- **Host**: localhost (or redis inside Docker network)
+- **Port**: 6379
+- **URL**: redis://localhost:6379/0
+
+For applications running inside Docker containers, the URL is:
+
+```
+redis://redis:6379/0
+```
+
+## Development Workflow
+
+### Using Docker (Recommended)
+
+1. **Start all containers**:
+
+   ```bash
+   python scripts/deploy.py deploy all
+   ```
+
+2. **Make changes to the code**
+
+3. **Restart specific containers if needed**:
+
+   ```bash
+   python scripts/deploy.py deploy backend  # Restart only the backend
+   python scripts/deploy.py deploy frontend  # Restart only the frontend
+   ```
+
+4. **Reset data if needed**:
+
+   ```bash
+   python scripts/reset.py all  # Reset all data
+   python scripts/reset.py database  # Reset only the database
+   python scripts/reset.py redis  # Reset only Redis
+   ```
+
+5. **Stop all containers when done**:
+
+   ```bash
+   python scripts/deploy.py stop
+   ```
+
+### Local Development (Alternative)
+
+If you prefer to develop locally without Docker:
+
+1. **Set up a virtual environment**:
 
    ```bash
    cd backend
@@ -154,72 +272,38 @@ Create a `frontend/package.json` file with the following dependencies:
    source venv/bin/activate
    ```
 
-2. Install dependencies:
+2. **Install backend dependencies**:
 
    ```bash
    pip install -r requirements.txt
    ```
 
-3. Create a `.env` file in the backend directory:
+3. **Create a `.env` file in the backend directory**:
 
    ```
-   DATABASE_URL=postgresql://username:password@localhost:5432/geopolitics
+   DATABASE_URL=postgresql://admin:admin@localhost:5433/geopolitics_2025
    REDIS_URL=redis://localhost:6379/0
    SECRET_KEY=your_secret_key_here
    DEBUG=True
    ```
 
-4. Run the development server:
+4. **Run the backend development server**:
+
    ```bash
    uvicorn app:app --reload
    ```
 
-### Frontend Setup
-
-1. Install dependencies:
+5. **Install frontend dependencies**:
 
    ```bash
    cd frontend
    npm install
    ```
 
-2. Create a `.env` file in the frontend directory:
-
-   ```
-   VITE_API_URL=http://localhost:8000
-   VITE_WS_URL=ws://localhost:8000/ws
-   ```
-
-3. Run the development server:
+6. **Run the frontend development server**:
    ```bash
    npm run dev
    ```
-
-### Database Setup
-
-1. Create a PostgreSQL database:
-
-   ```bash
-   createdb geopolitics
-   ```
-
-2. The database tables will be automatically created when you first run the backend application.
-
-### Docker Setup (Optional)
-
-1. Build and run the containers:
-
-   ```bash
-   docker-compose up -d
-   ```
-
-2. Access the application at `http://localhost:8080`
-
-## Development Workflow
-
-1. Start the backend server
-2. Start the frontend development server
-3. Access the application at `http://localhost:5173` (or the port specified by Vite)
 
 ## Testing
 
@@ -239,10 +323,40 @@ npm run test
 
 ## Deployment
 
-For production deployment, consider using:
+For production deployment, consider:
 
-- Backend: Gunicorn with Uvicorn workers
-- Frontend: Nginx serving static files
-- Database: Managed PostgreSQL service
-- Caching: Managed Redis service
-- Container Orchestration: Kubernetes or Docker Swarm
+- Using the provided Docker setup with appropriate environment variables
+- Setting up a reverse proxy (like Nginx) in front of the application
+- Using a container orchestration system like Kubernetes for scaling
+- Setting up proper monitoring and logging
+
+## Troubleshooting
+
+If you encounter issues:
+
+1. **Check the status of all components**:
+
+   ```bash
+   python scripts/status.py
+   ```
+
+2. **Try resetting the data**:
+
+   ```bash
+   python scripts/reset.py all
+   ```
+
+3. **Restart all containers**:
+
+   ```bash
+   python scripts/deploy.py stop
+   python scripts/deploy.py deploy all
+   ```
+
+4. **Check logs**:
+   ```bash
+   docker logs geopolitics_postgres
+   docker logs geopolitics_redis
+   docker logs geopolitics_backend
+   docker logs geopolitics_frontend
+   ```
