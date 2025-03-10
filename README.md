@@ -35,56 +35,92 @@ Players can leverage **Elon Musk as an AI-driven strategic asset**, research adv
 
 - **Frontend:**
 
-  - **React.js** or **Vue.js**: For user interface and interactive map components.
-  - **Leaflet.js** or **Mapbox**: To render detailed world maps.
+  - **Vue.js**: For user interface and interactive map components.
+  - **Leaflet.js**: To render detailed world maps.
   - **D3.js**: For visualizing economic data, military statistics, and diplomatic relations.
+  - **Chart.js**: For data visualization and statistics.
 
 - **Backend:**
 
-  - **Node.js (Express.js)**: Manages game logic and server-side operations.
-  - **Python (FastAPI or Flask)**: Handles AI-driven diplomacy and military strategies.
-  - **PostgreSQL** or **MongoDB**: Stores data on nations, leaders, alliances, and global events.
+  - **Python (FastAPI)**: Handles game logic, AI-driven diplomacy and military strategies.
+  - **PostgreSQL**: Stores data on nations, leaders, alliances, and global events.
+  - **Redis**: Caches AI computations and game events for efficiency.
 
 - **Game State Management:**
   - **WebSockets**: Ensures real-time updates and interactions.
-  - **Redis** (optional): Caches AI computations and game events for efficiency.
 
 ---
 
 ## Project Structure
 
 ```
-geopolitical-strategy-game/
-│── backend/
-│   ├── app.py                 # Main API (Flask/FastAPI)
+geopolitics-2025/
+├── backend/
+│   ├── app.py                      # Main API entry point (FastAPI)
+│   ├── requirements.txt            # Python dependencies
 │   ├── game_logic/
-│   │   ├── economy.py          # GDP, trade, and financial systems
-│   │   ├── military.py         # Military power, research, and warfare mechanics
-│   │   ├── diplomacy.py        # AI-driven alliances and diplomatic relations
-│   │   ├── nuclear_war.py      # Nuclear warfare logic and consequences
-│   │   ├── reputation.py       # Global reputation system
-│   │   ├── events.py           # Dynamic world events and triggers
-│   │   ├── skill_tree.py       # Skill tree logic and progression
-│   │   ├── diplomacy_logic.py   # Logic for diplomacy and alliances
-│   │   ├── nuclear_war_logic.py# Logic for nuclear warfare and consequences
-│   │   ├── reputation_logic.py # Logic for reputation system
-│   │   ├── events_logic.py     # Logic for dynamic world events and triggers
+│   │   ├── __init__.py
+│   │   ├── economy.py              # GDP, trade, and financial systems
+│   │   ├── military.py             # Military power, research, and warfare mechanics
+│   │   ├── diplomacy.py            # AI-driven alliances and diplomatic relations
+│   │   ├── nuclear_war.py          # Nuclear warfare logic and consequences
+│   │   ├── reputation.py           # Global reputation system
+│   │   ├── events.py               # Dynamic world events and triggers
+│   │   ├── skill_tree.py           # Skill tree logic and progression
 │   ├── database/
-│   │   ├── models.py           # Database schemas for nations, leaders, and alliances
-│   │   ├── queries.py          # Database queries for game state management
-│── frontend/
-│   ├── components/
-│   │   ├── Map.vue             # Interactive world map component
-│   │   ├── Dashboard.vue       # Player overview and statistics
-│   │   ├── Events.vue          # Game notifications and event logs
-│   │   ├── SkillTree.vue       # Skill tree visualization
-│   │   ├── Diplomacy.vue       # Diplomacy and alliances visualization
-│   │   ├── NuclearWar.vue      # Nuclear warfare visualization
-│   │   ├── Reputation.vue      # Reputation system visualization
-│   ├── assets/
-│   ├── App.vue                 # Main game interface
-│── public/
-│── README.md
+│   │   ├── __init__.py
+│   │   ├── models.py               # Database schemas for nations, leaders, and alliances
+│   │   ├── queries.py              # Database queries for game state management
+│   │   ├── db_config.py            # Database connection configuration
+│   ├── utils/
+│   │   ├── __init__.py
+│   │   ├── ai_helpers.py           # AI decision-making utilities
+│   │   ├── game_state.py           # Game state management
+│   │   ├── websocket_manager.py    # WebSocket connection management
+│   ├── tests/
+│       ├── __init__.py
+│       ├── test_economy.py
+│       ├── test_military.py
+│       ├── test_diplomacy.py
+├── frontend/
+│   ├── package.json                # Node.js dependencies
+│   ├── vite.config.js              # Vite configuration
+│   ├── index.html                  # Entry HTML file
+│   ├── src/
+│   │   ├── main.js                 # Main entry point
+│   │   ├── App.vue                 # Main application component
+│   │   ├── assets/                 # Static assets (images, fonts, etc.)
+│   │   ├── components/
+│   │   │   ├── Map.vue             # Interactive world map component
+│   │   │   ├── Dashboard.vue       # Player overview and statistics
+│   │   │   ├── Events.vue          # Game notifications and event logs
+│   │   │   ├── SkillTree.vue       # Skill tree visualization
+│   │   │   ├── Diplomacy.vue       # Diplomacy and alliances visualization
+│   │   │   ├── NuclearWar.vue      # Nuclear warfare visualization
+│   │   │   ├── Reputation.vue      # Reputation system visualization
+│   │   │   ├── UI/                 # Reusable UI components
+│   │   ├── views/
+│   │   │   ├── GameView.vue        # Main game view
+│   │   │   ├── MenuView.vue        # Game menu view
+│   │   │   ├── SettingsView.vue    # Settings view
+│   │   ├── store/                  # Vuex/Pinia store for state management
+│   │   │   ├── index.js
+│   │   │   ├── modules/
+│   │   │       ├── game.js
+│   │   │       ├── nations.js
+│   │   │       ├── diplomacy.js
+│   │   ├── services/
+│   │   │   ├── api.js              # API service for backend communication
+│   │   │   ├── websocket.js        # WebSocket service
+│   │   ├── router/
+│   │       ├── index.js            # Vue Router configuration
+│   ├── public/
+├── docker/
+│   ├── docker-compose.yml          # Docker Compose configuration
+│   ├── Dockerfile.backend          # Backend Dockerfile
+│   ├── Dockerfile.frontend         # Frontend Dockerfile
+├── .gitignore
+├── README.md
 ```
 
 ---
