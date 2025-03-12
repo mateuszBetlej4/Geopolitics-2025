@@ -1,4 +1,4 @@
-from backend.database.db_config import init_db, populate_initial_data
+from database.db_config import init_db, populate_initial_data
 
 if __name__ == "__main__":
     print("Initializing database...")

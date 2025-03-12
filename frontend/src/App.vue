@@ -1,6 +1,6 @@
 <template>
-  <div class="app-container">
-    <header class="app-header">
+  <div :class="['app-container', isFullScreenPage ? 'fullscreen-page' : '']">
+    <header class="app-header" v-if="!isFullScreenPage">
       <h1>Geopolitics 2025</h1>
       <nav>
         <router-link to="/">Home</router-link> |
@@ -13,14 +13,22 @@
       <router-view />
     </main>
 
-    <footer class="app-footer">
+    <footer class="app-footer" v-if="!isFullScreenPage">
       <p>&copy; 2025 Geopolitics Strategy Game</p>
     </footer>
   </div>
 </template>
 
 <script setup>
-// Component setup logic goes here
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
+
+const route = useRoute();
+
+// Check if current page should be fullscreen (no header/footer)
+const isFullScreenPage = computed(() => {
+  return route.path === '/game' || route.path === '/settings' || route.path === '/';
+});
 </script>
 
 <style>
@@ -50,13 +58,16 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .app-header {
   background-color: var(--primary-color);
   color: white;
-  padding: 1rem;
+  padding: 0.5rem;
   text-align: center;
+  height: 60px;
 }
 
 .app-header h1 {
@@ -80,17 +91,24 @@ body {
 
 .app-content {
   flex: 1;
-  padding: 1rem;
-  max-width: 1200px;
-  margin: 0 auto;
+  padding: 0;
+  max-width: 100%;
+  margin: 0;
   width: 100%;
+  overflow: hidden;
+  display: flex;
 }
 
 .app-footer {
   background-color: var(--primary-color);
   color: white;
   text-align: center;
-  padding: 1rem;
-  margin-top: auto;
+  padding: 0.5rem;
+  height: 40px;
+}
+
+/* Fullscreen page styling (no header/footer) */
+.fullscreen-page .app-content {
+  height: 100vh;
 }
 </style>

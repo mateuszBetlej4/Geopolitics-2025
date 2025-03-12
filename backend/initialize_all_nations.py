@@ -1,9 +1,27 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import text
-from backend.database.db_config import engine, Base
-from backend.database.models import Nation, Leader, Alliance, Treaty, GameEvent, ResearchProgress
+import sys
+import os
+
+# Adjust import paths based on environment
+try:
+    from backend.database.db_config import engine, Base
+    from backend.database.models import Nation, Leader, Alliance, Treaty, GameEvent, ResearchProgress
+except ModuleNotFoundError:
+    # We're in Docker, use relative imports
+    from database.db_config import engine, Base
+    from database.models import Nation, Leader, Alliance, Treaty, GameEvent, ResearchProgress
 
 def initialize_all_nations():
+    # Fix encoding for Windows
+    if sys.platform.startswith('win'):
+        import io
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+    
+    print(f"Default encoding: {sys.getdefaultencoding()}")
+    print(f"Current directory: {os.getcwd()}")
+    
     # Create tables if they don't exist
     Base.metadata.create_all(bind=engine)
     
@@ -190,7 +208,7 @@ def initialize_all_nations():
             # Smaller Nations
             {
                 "leader": {
-                    "name": "Sławomir Mentzen",
+                    "name": "Slawomir Mentzen",
                     "personality_type": "opportunistic",
                     "aggression_factor": 0.6,
                     "diplomatic_factor": 0.5,

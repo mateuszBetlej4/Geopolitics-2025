@@ -38,9 +38,10 @@ Players can leverage **Elon Musk as an AI-driven strategic asset**, research adv
 - **Frontend:**
 
   - **Vue.js**: For user interface and interactive map components.
-  - **Leaflet.js**: To render detailed world maps.
+  - **MapLibre GL JS**: To render high-performance WebGL-based world maps with smooth zooming and panning.
   - **D3.js**: For visualizing economic data, military statistics, and diplomatic relations.
   - **Chart.js**: For data visualization and statistics.
+  - **Turf.js**: For geospatial analysis and operations on map data.
 
 - **Backend:**
 
