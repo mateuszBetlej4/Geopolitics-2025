@@ -335,11 +335,12 @@ const ws = ref(null);
 const wsConnected = ref(false);
 const reconnectAttempts = ref(0);
 const maxReconnectAttempts = 5;
+const isLoading = ref(false);  // Flag to prevent watch triggers during loading
 
 // Connect to WebSocket
 const connectWebSocket = () => {
-  // Fix WebSocket URL construction
-  // When behind an nginx proxy, we need to use the relative path
+  // Use the relative path which goes through the Nginx proxy
+  // The Nginx proxy is configured to forward /api/ws to the backend's /ws endpoint
   const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
   const wsUrl = `${wsProtocol}//${window.location.host}/api/ws`;
   
@@ -359,16 +360,21 @@ const connectWebSocket = () => {
         const data = JSON.parse(event.data);
         console.log("Received WebSocket data:", data);
         
-        // Update game state with the received data
-        gameState.value = data;
-        
-        // Update UI state based on data
-        if (data.paused !== undefined) {
-          gameRunning.value = !data.paused;
-        }
-        
-        if (data.speed !== undefined) {
-          gameSpeed.value = data.speed;
+        // Only update game state if this is not a command response
+        if (!data.response_type) {
+          // Update game state with the received data
+          gameState.value = data;
+          
+          // Update UI state based on data
+          if (data.paused !== undefined) {
+            gameRunning.value = !data.paused;
+          }
+          
+          if (data.speed !== undefined) {
+            gameSpeed.value = data.speed;
+          }
+        } else {
+          console.log("Received command response:", data);
         }
       } catch (error) {
         console.error("Error parsing WebSocket data:", error);
@@ -415,9 +421,49 @@ onMounted(async () => {
   // Load saved games from localStorage
   loadSavedGamesList();
   
-  // Check if we need to load a specific save
+  // Check if we need to load a specific save or start a new game
   const currentSaveId = localStorage.getItem('geopolitics_current_save');
-  if (currentSaveId) {
+  const startNewGame = localStorage.getItem('geopolitics_new_game') === 'true';
+  
+  // Connect to WebSocket for real-time updates
+  connectWebSocket();
+  
+  if (startNewGame) {
+    // Set loading flag to prevent watch triggers
+    isLoading.value = true;
+    
+    // Clear the flag
+    localStorage.removeItem('geopolitics_new_game');
+    
+    // Reset to default state
+    gameState.value = JSON.parse(JSON.stringify(defaultGameState));
+    gameRunning.value = false;
+    gameSpeed.value = "normal";
+    
+    console.log('Starting new game with default state');
+    
+    // Wait for connection to be established before sending command
+    const waitForConnection = (callback) => {
+      if (wsConnected.value) {
+        callback();
+      } else {
+        setTimeout(() => waitForConnection(callback), 100);
+      }
+    };
+    
+    waitForConnection(() => {
+      // Tell the server we're starting a new game
+      sendCommand('new_game');
+      
+      // Reset loading flag after a short delay
+      setTimeout(() => {
+        isLoading.value = false;
+      }, 500);
+    });
+  } else if (currentSaveId) {
+    // Set loading flag to prevent watch triggers
+    isLoading.value = true;
+    
     // Find the save with the given ID
     const save = savedGames.value.find(s => s.id === currentSaveId);
     if (save) {
@@ -431,11 +477,33 @@ onMounted(async () => {
       localStorage.removeItem('geopolitics_current_save');
       
       console.log('Loaded saved game:', save.name);
+      
+      // Wait for connection and send the loaded state to server
+      const waitForConnection = (callback) => {
+        if (wsConnected.value) {
+          callback();
+        } else {
+          setTimeout(() => waitForConnection(callback), 100);
+        }
+      };
+      
+      waitForConnection(() => {
+        // Tell the server we're loading a saved game
+        sendCommand('load_save', { gameState: save.gameState });
+        
+        // Reset loading flag after a short delay
+        setTimeout(() => {
+          isLoading.value = false;
+        }, 500);
+      });
+    } else {
+      // Reset loading flag if save not found
+      isLoading.value = false;
     }
+  } else {
+    // No specific save to load, not starting new game
+    isLoading.value = false;
   }
-  
-  // Connect to WebSocket for real-time updates
-  connectWebSocket();
   
   // Add keyboard event listener for shortcuts
   window.addEventListener('keydown', handleKeyDown);
@@ -475,17 +543,31 @@ const gameState = ref({
   alliances: []
 });
 
+// Initial default game state - used when starting a new game
+const defaultGameState = {
+  date: "January 1, 2025",
+  nations: [],
+  speed: "normal",
+  paused: true,
+  events: [],
+  alliances: []
+};
+
 // Game controls
 const gameRunning = ref(false);
 const gameSpeed = ref("normal");
 
 // Watch for game control changes and send updates to the server
 watch(gameRunning, (running) => {
-  sendCommand(running ? 'resume' : 'pause');
+  if (!isLoading.value) {
+    sendCommand(running ? 'resume' : 'pause');
+  }
 });
 
 watch(gameSpeed, (speed) => {
-  sendCommand('set_speed', { speed });
+  if (!isLoading.value) {
+    sendCommand('set_speed', { speed });
+  }
 });
 
 // UI state
@@ -662,18 +744,61 @@ const loadGame = (id) => {
       return;
     }
     
-    // Load the game state
-    gameState.value = save.gameState;
+    // Set loading flag to prevent watch triggers
+    isLoading.value = true;
+    
+    // Load the game state directly rather than going through router
+    gameState.value = JSON.parse(JSON.stringify(save.gameState));
     gameRunning.value = save.gameRunning;
     gameSpeed.value = save.gameSpeed;
     activeTab.value = save.activeTab;
     
+    // Send the loaded state to the server
+    if (ws.value && wsConnected.value) {
+      sendCommand('load_save', { gameState: save.gameState });
+    } else {
+      console.warn("WebSocket not connected, can't sync loaded game state to server");
+      
+      // Reconnect WebSocket if disconnected
+      if (!ws.value || !wsConnected.value) {
+        // If there's an existing connection, close it first
+        if (ws.value) {
+          ws.value.close();
+          ws.value = null;
+        }
+        // Reconnect
+        reconnectAttempts.value = 0;
+        connectWebSocket();
+        
+        // Wait for connection and then send state
+        const waitForConnection = (callback) => {
+          if (wsConnected.value) {
+            callback();
+          } else {
+            if (reconnectAttempts.value < maxReconnectAttempts) {
+              setTimeout(() => waitForConnection(callback), 100);
+            }
+          }
+        };
+        
+        waitForConnection(() => {
+          sendCommand('load_save', { gameState: save.gameState });
+        });
+      }
+    }
+    
     // Close the save menu
     showSaveMenu.value = false;
+    
+    // Reset loading flag after a short delay to ensure all updates are processed
+    setTimeout(() => {
+      isLoading.value = false;
+    }, 500);
     
     // Show success message
     alert('Game loaded successfully!');
   } catch (error) {
+    isLoading.value = false; // Make sure flag is reset on error
     console.error('Failed to load game:', error);
     alert('Failed to load game. Please try again.');
   }
@@ -742,6 +867,9 @@ const exitToMenu = () => {
       return;
     }
   }
+  
+  // Reset the flag to ensure we start fresh when starting a new game
+  localStorage.removeItem('geopolitics_current_save');
   
   // Navigate to home page
   router.push('/');

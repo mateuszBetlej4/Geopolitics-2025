@@ -15,10 +15,10 @@
         </div>
         
         <div class="menu-actions">
-          <router-link to="/game" class="menu-btn primary-btn">
+          <button @click="startNewGame" class="menu-btn primary-btn">
             <div class="btn-icon">🌍</div>
             <div class="btn-text">New Game</div>
-          </router-link>
+          </button>
           
           <button @click="toggleSavedGames" class="menu-btn secondary-btn">
             <div class="btn-icon">💾</div>
@@ -255,6 +255,18 @@ const exitGame = () => {
 const selectNation = (nation) => {
   console.log(`Selected nation: ${nation.name}`);
   // Future: Could be used to pre-select a nation before starting a new game
+};
+
+// Start a new game
+const startNewGame = () => {
+  // Set flag to indicate this is a new game
+  localStorage.setItem('geopolitics_new_game', 'true');
+  
+  // Clear any current save ID to prevent automatic loading
+  localStorage.removeItem('geopolitics_current_save');
+  
+  // Navigate to the game page
+  router.push('/game');
 };
 
 // Sample data for nations

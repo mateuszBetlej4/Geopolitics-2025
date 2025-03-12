@@ -24,9 +24,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Game state
-GAME_STATE = {
-    "date": "January 1, 2025",
+# Initial default game state - used when resetting
+DEFAULT_GAME_STATE = {
+    "date": "January 20, 2025",
     "speed": "normal",
     "paused": True,
     "nations": [
@@ -53,6 +53,9 @@ GAME_STATE = {
     ],
     "events": []
 }
+
+# Game state
+GAME_STATE = DEFAULT_GAME_STATE.copy()
 
 # WebSocket connection manager
 class ConnectionManager:
@@ -190,16 +193,81 @@ async def websocket_endpoint(websocket: WebSocket):
             try:
                 command = json.loads(data)
                 print(f"Received command: {command}")
+                
+                # Prepare a response
+                response = {
+                    "response_type": "command_response",
+                    "command": command.get("action", "unknown"),
+                    "success": True,
+                    "message": ""
+                }
+                
                 if "action" in command:
                     if command["action"] == "pause":
                         GAME_STATE["paused"] = True
+                        response["message"] = "Game paused"
                         print("Game paused")
+                    
                     elif command["action"] == "resume":
                         GAME_STATE["paused"] = False
+                        response["message"] = "Game resumed"
                         print("Game resumed")
+                    
                     elif command["action"] == "set_speed":
                         GAME_STATE["speed"] = command.get("speed", "normal")
+                        response["message"] = f"Game speed set to: {GAME_STATE['speed']}"
                         print(f"Game speed set to: {GAME_STATE['speed']}")
+                    
+                    elif command["action"] == "new_game":
+                        # Reset game state to default
+                        GAME_STATE.clear()
+                        GAME_STATE.update(DEFAULT_GAME_STATE.copy())
+                        
+                        # Reload fresh nation data from database to ensure clean state
+                        session = Session(engine)
+                        try:
+                            # Get all nations and their leaders from database
+                            nations_with_leaders = (
+                                session.query(Nation, Leader)
+                                .join(Leader, Nation.leader_id == Leader.id)
+                                .all()
+                            )
+                            
+                            # Format the nations data
+                            fresh_nations = []
+                            for nation, leader in nations_with_leaders:
+                                fresh_nations.append({
+                                    "name": nation.name,
+                                    "leader": leader.name,
+                                    "gdp": nation.gdp,
+                                    "military_power": nation.military_power,
+                                    "stability": nation.stability if hasattr(nation, 'stability') else 70
+                                })
+                            
+                            # Update game state with fresh nation data
+                            GAME_STATE["nations"] = fresh_nations
+                            print(f"Reloaded {len(fresh_nations)} nations from database for new game")
+                        except Exception as e:
+                            print(f"Error loading nations from database: {str(e)}")
+                        finally:
+                            session.close()
+                        
+                        response["message"] = "New game started with fresh data"
+                        print("New game started with default state and fresh nation data")
+                    
+                    elif command["action"] == "load_save":
+                        # Load game state from client
+                        if command.get("gameState"):
+                            GAME_STATE.clear()
+                            GAME_STATE.update(command["gameState"])
+                            response["message"] = "Saved game loaded"
+                            print("Game state loaded from client save")
+                        else:
+                            response["success"] = False
+                            response["message"] = "No game state provided"
+                    
+                    # Send command response to the client
+                    await manager.send_personal_message(json.dumps(response), websocket)
                     
                     # Broadcast updated state after command
                     await manager.broadcast_game_state()
